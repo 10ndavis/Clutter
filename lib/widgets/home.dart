@@ -1,5 +1,6 @@
 import 'package:Clutter/helpers/api.dart';
-import 'package:Clutter/models/comic.dart';
+import 'package:Clutter/models/series.dart';
+import 'package:Clutter/widgets/series_details.dart';
 import 'package:flutter/material.dart';
 
 class Home extends StatefulWidget {
@@ -9,7 +10,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   TextEditingController _controller;
-  List<Comic> searchResults = [];
+  List<Series> searchResults = [];
 
   void initState() {
     super.initState();
@@ -28,7 +29,7 @@ class _HomeState extends State<Home> {
   }
 
   void _updateSearchResults() async {
-    List<Comic> results = await search(_controller.text);
+    List<Series> results = await search(_controller.text);
     setState(() {
       searchResults = results;
     });
@@ -77,43 +78,89 @@ class _HomeState extends State<Home> {
       children: [
         ...searchResults
             .map(
-              (Comic comic) => Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(.50),
-                        blurRadius: 10,
-                      )
-                    ]),
+              (Series comic) => GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SeriesDetails(comic: comic),
+                    ),
+                  );
+                },
+                child: Hero(
+                  tag: 'comic-details-${comic.title}',
+                  child: Container(
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(.50),
+                          blurRadius: 1,
+                          spreadRadius: 1,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                      borderRadius: BorderRadius.circular(
+                        15,
+                      ),
+                    ),
                     margin: EdgeInsets.all(20),
                     child: ClipRRect(
                       borderRadius: BorderRadius.all(
                         Radius.circular(15),
                       ),
-                      child: Image(
-                        height: 350 / 1.5,
-                        width: 250 / 1.5,
-                        image: NetworkImage(comic.cover),
+                      child: Stack(
+                        alignment: Alignment.bottomLeft,
+                        children: [
+                          Image(
+                            image: NetworkImage(comic.cover),
+                            height: 350 / 1,
+                            width: 250 / .5,
+                            fit: BoxFit.cover,
+                            alignment: Alignment.topCenter,
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  padding: EdgeInsets.only(
+                                    left: 20,
+                                    right: 20,
+                                    bottom: 20,
+                                    top: 50,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment(0, 1),
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withOpacity(.80),
+                                        Colors.black.withOpacity(.95),
+                                      ],
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        comic.title,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                          fontSize: 18,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  Flexible(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        top: 20,
-                        right: 20,
-                      ),
-                      child: Text(
-                        comic.title,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             )
             .toList(),
